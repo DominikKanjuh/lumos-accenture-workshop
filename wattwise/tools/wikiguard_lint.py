@@ -72,6 +72,10 @@ def selftest_guard(repo: Path, guard: Path, lint: Lint) -> None:
     existing_test = next((repo / "tests").glob("test_*.py"), None)
     cases = [
         ("Write", {"file_path": str(repo / "wiki/Tariffs.md"), "content": "x"}, True),
+        ("Write", {"file_path": str(repo / "wiki/Any-New-Page.md"), "content": "x"}, True),
+        ("Edit", {"file_path": str(repo / "wiki/Home.md"), "old_string": "a", "new_string": "b"}, True),
+        ("Write", {"file_path": str(repo / "wiki/_proposals/x.md"), "content": "x"}, False),
+        ("Edit", {"file_path": str(repo / "wiki/Architecture.md"), "old_string": "a", "new_string": "b"}, False),
         ("Edit", {"file_path": str(repo / "data/readings.csv"), "old_string": "a", "new_string": "b"}, True),
         ("Edit", {"file_path": str(repo / "src/wattwise/meter.py"), "old_string": "a", "new_string": "b"}, False),
     ]

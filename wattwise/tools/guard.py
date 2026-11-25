@@ -8,7 +8,9 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-LOCKED_RULE_PAGES = {"wiki/Billing-Rules.md", "wiki/Tariffs.md", "wiki/Meter-Readings.md"}
+# Deny by default: every wiki page (incl. new ones) is source of truth. Agents may only write
+# proposals and the mechanics pages that describe the code.
+WIKI_WRITABLE = {"wiki/Architecture.md", "wiki/Glossary.md"}
 
 
 def rel(path: str, cwd: str) -> str:
@@ -21,8 +23,8 @@ def rel(path: str, cwd: str) -> str:
 def check(event: dict) -> str | None:
     inp = event.get("tool_input", {})
     path = rel(inp.get("file_path", ""), event.get("cwd", "."))
-    if path in LOCKED_RULE_PAGES:
-        return f"{path} holds business rules (source of truth). Write a proposal to wiki/_proposals/ instead."
+    if path.startswith("wiki/") and path not in WIKI_WRITABLE and not path.startswith("wiki/_proposals/"):
+        return f"{path} is source of truth (owned by the product owner). Write a proposal to wiki/_proposals/ instead."
     if path.startswith("data/"):
         return "data/ is read-only: the meter readings are correct. Fix the code."
     if path.startswith("issues/") and event.get("tool_name") == "Write":

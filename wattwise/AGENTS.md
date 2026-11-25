@@ -22,7 +22,7 @@ python -m wattwise run 2026-11                            # batch run, all custo
 
 ## Boundaries
 
-- **Never** edit business-rule text in `wiki/Billing-Rules.md`, `wiki/Tariffs.md` or `wiki/Meter-Readings.md`. If you think a rule is wrong, write a proposal to `wiki/_proposals/<rule-id>.md` for product-owner sign-off.
+- **Never** edit any page in `wiki/` (existing or new); the product owner owns them. Only exceptions: `wiki/_proposals/` (your proposals for PO sign-off) and the mechanics pages `wiki/Architecture.md` and `wiki/Glossary.md`.
 - **Never** edit `data/`: the readings are correct.
 - **Never** weaken, delete or rewrite existing tests. Add new ones only.
 - **Never** special-case a customer or meter id. Fix the cause in the domain modules (`models`, `meter`, `tariff`, `billing`), never in `web.py`, `views.py` or `cli.py`.
