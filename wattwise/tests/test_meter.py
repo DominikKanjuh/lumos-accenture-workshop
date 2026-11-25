@@ -38,3 +38,25 @@ def test_consumption_kwh_flags_implausible_consumption(meter: Meter) -> None:
     # 30 days * 200 kWh/day = 6000 kWh is the limit
     with pytest.raises(ImplausibleConsumptionError):
         consumption_kwh(meter, reading(1000, NOV_1), reading(7001, DEC_1))
+
+
+# Regression test for BUG-142
+# Wiki Meter-Readings#register-rollover, 5-digit meter, opening 99870, closing 00095:
+# (99999 - 99870) + 95 + 1 = 129 + 95 + 1 = 225 kWh
+def test_consumption_kwh_handles_register_rollover(meter: Meter) -> None:
+    assert consumption_kwh(meter, reading(99870, NOV_1), reading(95, DEC_1)) == 225
+
+
+# Regression test for BUG-142
+# 6-digit meter, opening 999900, closing 100: 10^6 - 999900 + 100 = 100 + 100 = 200 kWh
+def test_consumption_kwh_handles_register_rollover_six_digits() -> None:
+    six = Meter("M-1", digits=6)
+    assert consumption_kwh(six, reading(999900, NOV_1), reading(100, DEC_1)) == 200
+
+
+# Regression test for BUG-142
+# A rolled-over reading still goes through the plausibility check:
+# 10^5 - 50000 + 100 = 50100 kWh in 30 days > 30 * 200 = 6000 kWh -> flagged
+def test_consumption_kwh_flags_implausible_rollover(meter: Meter) -> None:
+    with pytest.raises(ImplausibleConsumptionError):
+        consumption_kwh(meter, reading(50000, NOV_1), reading(100, DEC_1))

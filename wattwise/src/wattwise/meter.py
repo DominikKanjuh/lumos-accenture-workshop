@@ -48,10 +48,8 @@ def consumption_kwh(meter: Meter, previous: MeterReading, current: MeterReading)
 
     delta = current.value - previous.value
     if delta < 0:
-        raise InvalidReadingError(
-            f"Meter {meter.meter_id}: reading decreased from {previous.value} "
-            f"to {current.value}"
-        )
+        # Register rolled over (wiki Meter-Readings#register-rollover).
+        delta += meter.max_value + 1
 
     elapsed_days = (current.read_on - previous.read_on).days
     if delta > MAX_PLAUSIBLE_KWH_PER_DAY * elapsed_days:

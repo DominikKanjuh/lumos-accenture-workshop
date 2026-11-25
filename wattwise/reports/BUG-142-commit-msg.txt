@@ -1,0 +1,15 @@
+fix(meter): handle register rollover (BUG-142)
+
+consumption_kwh raised InvalidReadingError whenever the closing reading
+was lower than the opening reading. Per wiki Meter-Readings#register-rollover
+this means the register wrapped: consumption = 10^digits - opening + closing.
+The rolled-over delta now goes through the plausibility check like any other.
+
+M-20004 (C-1004) rolled over 99870 -> 00095 in 2026-11, so the November
+billing run failed for C-1004 and the CLI batch aborted before C-1005.
+C-1004 2026-11 is now billed 225 kWh (103.61 EUR). No other invoice changes.
+
+Adds regression tests for the wiki examples (5-digit, 6-digit, implausible
+rollover) and maps them in rules.json; rule is IN SYNC in the drift check.
+
+Refs: BUG-142

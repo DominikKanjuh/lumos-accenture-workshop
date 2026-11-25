@@ -121,7 +121,11 @@
         "meter.consumption_kwh",
         "models.Meter.max_value"
       ],
-      "tests": [],
+      "tests": [
+        "test_meter.py::test_consumption_kwh_handles_register_rollover",
+        "test_meter.py::test_consumption_kwh_handles_register_rollover_six_digits",
+        "test_meter.py::test_consumption_kwh_flags_implausible_rollover"
+      ],
       "examples": [
         {
           "call": "consumption(5, 99870, 95)",
