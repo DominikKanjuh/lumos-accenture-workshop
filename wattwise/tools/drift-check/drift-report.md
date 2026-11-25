@@ -2,11 +2,11 @@
 
 | Rule | Status | Wiki says | Code does | Tests |
 | --- | --- | --- | --- | --- |
-| `Billing-Rules#billing-period` | **DRIFT** | Both start and end are billable days. The number of billable days is therefore end - start + 1: | `days('2026-11-01 to 2026-11-30') -> 29  [wiki: 30] (+2 more)` | none |
+| `Billing-Rules#billing-period` | **IN SYNC** | Both start and end are billable days. The number of billable days is therefore end - start + 1: | `matches 3/3 examples` | 1 |
 | `Billing-Rules#base-fee` | **IN SYNC** | Since release 1.2.0 the base fee is prorated per day (FEAT-064), so that customers who move in or out mid-m... | `matches 1/1 examples` | 2 |
-| `Billing-Rules#invoice-layout` | **DRIFT** (via Billing-Rules#billing-period) | An invoice has exactly two net lines, in this order: 1. Base fee (<days> days) 2. Energy (<kWh> kWh) follow... | `[l.description for l in invoice('BASIC', '2026-11', 247).lines] -> ['Base fee (29 days)', 'Energy (247 kWh)']  [wiki: ['Base fee (30 days)', 'Energy (247 kWh)']]` | 1 |
+| `Billing-Rules#invoice-layout` | **IN SYNC** | An invoice has exactly two net lines, in this order: 1. Base fee (<days> days) 2. Energy (<kWh> kWh) follow... | `matches 1/1 examples` | 2 |
 | `Billing-Rules#vat-and-rounding` | **IN SYNC** | VAT rate is 19%. | `matches 2/2 examples` | 3 |
-| `Billing-Rules#full-example` | **DRIFT** (via Billing-Rules#billing-period) | Customer on WattWise Basic, November 2026, 247 kWh: | `amount(invoice('BASIC', '2026-11', 247), 'Base fee (30 days)') -> 9.44  [wiki: 9.76] (+3 more)` | none |
+| `Billing-Rules#full-example` | **IN SYNC** | Customer on WattWise Basic, November 2026, 247 kWh: | `matches 5/5 examples` | 1 |
 | `Meter-Readings#consumption` | **IN SYNC** | consumption = closing reading − opening reading | `matches 1/1 examples` | 1 |
 | `Meter-Readings#register-rollover` | **IN SYNC** | A closing reading that is lower than the opening reading means the register rolled over. In that case: | `matches 3/3 examples` | 3 |
 | `Meter-Readings#plausibility-check` | **IN SYNC** | Since 1.3.0 (FEAT-091): if the average consumption is above 200 kWh per day between the two readings, the r... | `matches 2/2 examples` | 1 |
@@ -19,14 +19,6 @@
 
 ## Failing examples
 
-- `Billing-Rules#billing-period`: `days('2026-11-01 to 2026-11-30')` wiki **30**, code **29** (wiki table)
-- `Billing-Rules#billing-period`: `days('2026-12-01 to 2026-12-31')` wiki **31**, code **30** (wiki table)
-- `Billing-Rules#billing-period`: `days('2027-02-01 to 2027-02-28')` wiki **28**, code **27** (wiki table)
-- `Billing-Rules#invoice-layout`: `[l.description for l in invoice('BASIC', '2026-11', 247).lines]` wiki **['Base fee (30 days)', 'Energy (247 kWh)']**, code **['Base fee (29 days)', 'Energy (247 kWh)']** (wiki)
-- `Billing-Rules#full-example`: `amount(invoice('BASIC', '2026-11', 247), 'Base fee (30 days)')` wiki **9.76**, code **9.44** (wiki table)
-- `Billing-Rules#full-example`: `amount(invoice('BASIC', '2026-11', 247), 'Net')` wiki **94.98**, code **94.66** (wiki table)
-- `Billing-Rules#full-example`: `amount(invoice('BASIC', '2026-11', 247), 'VAT 19%')` wiki **18.05**, code **17.99** (wiki table)
-- `Billing-Rules#full-example`: `amount(invoice('BASIC', '2026-11', 247), 'Total')` wiki **113.03**, code **112.65** (wiki table)
 - `Tariffs#how-tiered-prices-work`: `energy_charge(get_tariff('COMFORT'), 260)` wiki **78.44**, code **95.94** (wiki table)
 - `Tariffs#how-tiered-prices-work`: `energy_charge(get_tariff('HEATPUMP'), 1220)` wiki **337.18**, code **389.18** (wiki table)
 - `Tariffs#how-tiered-prices-work`: `max_step('COMFORT')` wiki **0.37**, code **17.87** (wiki)
@@ -34,7 +26,7 @@
 
 ## Coverage
 
-**Wiki rules without tests:** `Billing-Rules#billing-period`, `Billing-Rules#full-example`, `Tariffs#tariffs`, `Billing-Rules#energy-charge`, `Meter-Readings#where-readings-come-from`
+**Wiki rules without tests:** `Tariffs#tariffs`, `Billing-Rules#energy-charge`, `Meter-Readings#where-readings-come-from`
 
 **Wiki sections not in registry:** none
 

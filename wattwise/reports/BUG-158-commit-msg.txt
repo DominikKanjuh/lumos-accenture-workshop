@@ -1,0 +1,18 @@
+fix(models): count both start and end day in billing period (BUG-158)
+
+BillingPeriod.days returned end - start, which counted the end day as
+exclusive, so every monthly period was one day short (November: 29 instead
+of 30). The prorated base fee was therefore ~3% too low on every invoice
+since 1.2.0.
+
+wiki/Billing-Rules.md#billing-period: "Both start and end are billable
+days. The number of billable days is therefore end - start + 1".
+
+- models.BillingPeriod.days now returns (end - start).days + 1
+- regression tests from the wiki examples: billing-period table
+  (30/31/28 days) and the full example (9.76 / 94.98 / 18.05 / 113.03)
+- rules.json: tests mapped for billing-period, invoice-layout, full-example
+
+Blast radius: all customers, all months. In data/: C-1001..C-1005 for
+2026-10 and 2026-11 are underbilled, 5.42 EUR gross in total. Corrected
+invoices need a PO/finance decision.

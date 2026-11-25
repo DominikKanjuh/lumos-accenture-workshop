@@ -18,7 +18,9 @@
         "models.BillingPeriod.days",
         "service.month_period"
       ],
-      "tests": [],
+      "tests": [
+        "test_models.py::test_billing_period_days_includes_start_and_end"
+      ],
       "examples": [
         {
           "table": 0,
@@ -52,7 +54,8 @@
         "billing.create_invoice"
       ],
       "tests": [
-        "test_billing.py::test_create_invoice_has_base_fee_and_energy_lines"
+        "test_billing.py::test_create_invoice_has_base_fee_and_energy_lines",
+        "test_billing.py::test_create_invoice_matches_wiki_full_example"
       ],
       "examples": [
         {
@@ -93,7 +96,9 @@
       "code": [
         "billing.create_invoice"
       ],
-      "tests": [],
+      "tests": [
+        "test_billing.py::test_create_invoice_matches_wiki_full_example"
+      ],
       "examples": [
         {
           "table": 0,
