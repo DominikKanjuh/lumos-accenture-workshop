@@ -217,7 +217,11 @@
       ],
       "tests": [
         "test_tariff.py::test_energy_charge_comfort_within_first_tier",
-        "test_tariff.py::test_energy_charge_comfort_at_tier_boundary"
+        "test_tariff.py::test_energy_charge_comfort_at_tier_boundary",
+        "test_tariff.py::test_energy_charge_comfort_prices_only_kwh_above_limit_at_higher_tier",
+        "test_tariff.py::test_energy_charge_heatpump_prices_each_tier_separately",
+        "test_tariff.py::test_energy_charge_comfort_one_kwh_above_limit_costs_top_price_only",
+        "test_wikiguard.py::test_energy_charge_is_continuous_in_consumption"
       ],
       "examples": [
         {

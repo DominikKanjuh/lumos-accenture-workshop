@@ -1,0 +1,18 @@
+fix(tariff): price each tier only for the kWh inside it (BUG-151)
+
+energy_charge priced the whole consumption at the highest tier reached,
+so going one kWh over a tier limit made the bill jump (Comfort 250 -> 251
+kWh: +17.87 EUR). Customers above the first tier limit were overbilled.
+
+wiki/Tariffs.md#how-tiered-prices-work: "each tier's price applies only
+to the kWh that fall inside that tier". Round once after summing tiers.
+
+- tariff.energy_charge sums (kWh in tier) x tier price, rounds once via
+  round_eur
+- regression tests from the wiki examples: Comfort 260 kWh -> 78.44,
+  HeatPump 1220 kWh -> 337.18, plus boundary Comfort 251 kWh -> 75.12
+- rules.json: tests mapped for Tariffs#how-tiered-prices-work
+
+Blast radius: COMFORT > 250 kWh and HEATPUMP > 400 kWh since 1.4.0.
+In data/: C-1002 2026-11 (-20.82), C-1003 2026-10 (-14.28) and 2026-11
+(-61.88) EUR gross, 96.98 EUR in total. Corrected invoices needed.

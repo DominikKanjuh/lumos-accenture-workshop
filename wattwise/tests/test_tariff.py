@@ -35,6 +35,26 @@ def test_energy_charge_comfort_at_tier_boundary() -> None:
     assert energy_charge(get_tariff("COMFORT"), 250) == Decimal("74.75")
 
 
+# Regression test for BUG-151
+def test_energy_charge_comfort_prices_only_kwh_above_limit_at_higher_tier() -> None:
+    # wiki/Tariffs.md#how-tiered-prices-work, Comfort 260 kWh:
+    # 250 * 0.2990 = 74.75 + 10 * 0.3690 = 3.69 -> 78.44
+    assert energy_charge(get_tariff("COMFORT"), 260) == Decimal("78.44")
+
+
+# Regression test for BUG-151
+def test_energy_charge_heatpump_prices_each_tier_separately() -> None:
+    # wiki/Tariffs.md#how-tiered-prices-work, HeatPump 1,220 kWh:
+    # 400 * 0.2490 = 99.60 + 600 * 0.2790 = 167.40 + 220 * 0.3190 = 70.18 -> 337.18
+    assert energy_charge(get_tariff("HEATPUMP"), 1220) == Decimal("337.18")
+
+
+# Regression test for BUG-151
+def test_energy_charge_comfort_one_kwh_above_limit_costs_top_price_only() -> None:
+    # 250 * 0.2990 = 74.75 + 1 * 0.3690 = 75.119 -> 75.12 (rounded once)
+    assert energy_charge(get_tariff("COMFORT"), 251) == Decimal("75.12")
+
+
 def test_energy_charge_zero_consumption() -> None:
     assert energy_charge(get_tariff("HEATPUMP"), 0) == Decimal("0.00")
 

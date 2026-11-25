@@ -88,19 +88,32 @@ def get_tariff(code: str) -> Tariff:
 def energy_charge(tariff: Tariff, kwh: int) -> Decimal:
     """Net energy charge for the consumption of one billing period.
 
+    Tiers work like income tax brackets: each tier's price applies only to
+    the kWh inside that tier. The sum is rounded to cents once.
+
     Args:
         tariff: The customer's tariff.
         kwh: Consumption in the billing period.
 
     Returns:
         Net energy charge in EUR, rounded to cents.
+
+    Raises:
+        ValueError: If ``kwh`` is negative.
+        AssertionError: If the tariff has no open-ended last tier.
     """
     if kwh < 0:
         raise ValueError("Consumption must not be negative")
 
+    total_eur = Decimal(0)
+    lower_kwh = 0
     for tier in tariff.tiers:
+        upper_kwh = kwh if tier.up_to_kwh is None else min(kwh, tier.up_to_kwh)
+        if upper_kwh > lower_kwh:
+            total_eur += Decimal(upper_kwh - lower_kwh) * tier.price_per_kwh
         if tier.up_to_kwh is None or kwh <= tier.up_to_kwh:
-            return round_eur(Decimal(kwh) * tier.price_per_kwh)
+            return round_eur(total_eur)
+        lower_kwh = tier.up_to_kwh
 
     raise AssertionError(f"Tariff {tariff.code} has no open-ended tier")
 

@@ -12,17 +12,14 @@
 | `Meter-Readings#plausibility-check` | **IN SYNC** | Since 1.3.0 (FEAT-091): if the average consumption is above 200 kWh per day between the two readings, the r... | `matches 2/2 examples` | 1 |
 | `Meter-Readings#validation` | **IN SYNC** | A reading is rejected with InvalidReadingError if: it belongs to a different meter, its value is negative o... | `matches 3/3 examples` | 3 |
 | `Tariffs#tariffs` | **UNTESTED** | Tier limits apply per billing period (per month). | `matches 6/6 examples` | none |
-| `Tariffs#how-tiered-prices-work` | **DRIFT** | Tiers work like income tax brackets: each tier's price applies only to the kWh that fall inside that tier. | `energy_charge(get_tariff('COMFORT'), 260) -> 95.94  [wiki: 78.44] (+3 more)` | 2 |
+| `Tariffs#how-tiered-prices-work` | **IN SYNC** | Tiers work like income tax brackets: each tier's price applies only to the kWh that fall inside that tier. | `matches 4/4 examples` | 6 |
 | `Tariffs#adding-a-tariff` | **IN SYNC** | Tariffs live in src/wattwise/tariff.py (TARIFFS). | `matches 1/1 examples` | 1 |
 | `Billing-Rules#energy-charge` | **NO EXAMPLE** | The energy charge depends on the tariff and consumption. | `matches 0/0 examples` | none |
 | `Meter-Readings#where-readings-come-from` | **NO EXAMPLE** | The reading on the 1st opens that month's period and closes the previous month's period. | `matches 0/0 examples` | none |
 
 ## Failing examples
 
-- `Tariffs#how-tiered-prices-work`: `energy_charge(get_tariff('COMFORT'), 260)` wiki **78.44**, code **95.94** (wiki table)
-- `Tariffs#how-tiered-prices-work`: `energy_charge(get_tariff('HEATPUMP'), 1220)` wiki **337.18**, code **389.18** (wiki table)
-- `Tariffs#how-tiered-prices-work`: `max_step('COMFORT')` wiki **0.37**, code **17.87** (wiki)
-- `Tariffs#how-tiered-prices-work`: `max_step('HEATPUMP')` wiki **0.32**, code **40.32** (wiki)
+- none
 
 ## Coverage
 

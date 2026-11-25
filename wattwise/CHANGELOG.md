@@ -6,6 +6,7 @@ All notable changes to this project are documented here.
 
 - fix: meter register rollover is billed as consumption instead of rejecting the reading (BUG-142)
 - fix: billing period counts both start and end day, so the prorated base fee covers every supplied day (BUG-158)
+- fix: tiered tariffs charge each tier's price only for the kWh inside that tier, not for the whole consumption (BUG-151)
 
 ## 1.4.0 - 2026-09-15
 
