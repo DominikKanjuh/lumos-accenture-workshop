@@ -51,7 +51,7 @@ Every file in `wiki/` and `data/` and every module in `src/wattwise/`, new or ol
 - **Time:** T1 periods inclusive (`end - start + 1`) · T2 no hard-coded month/year lengths · T3 no clock reads in domain logic; Europe/Berlin and DST-aware.
 - **Quality:** Q1 every wiki example is an executable test · Q2 test boundaries and invariants · Q3 regression test per bug · Q4 automatic reconciliation of totals.
 - **Errors:** E1 domain exceptions naming entity and values · E2 validate at boundaries, pure domain · E3 failures reported as data with reason.
-- **Knowledge:** K1 wiki owns rules, code owns mechanics · K2 every rule mapped to code and tests, no orphans · K3 rule changes only via `wiki/_proposals/` + PO sign-off · K4 keep the _why_.
+- **Knowledge:** K1 wiki owns rules, code owns mechanics · K2 every rule mapped to code and tests, no orphans · K3 rule changes only via `wiki/_proposals/` + PO sign-off · K4 keep the _why_ · K5 every fixed ticket has a CHANGELOG line (Unreleased, with ticket id) and vice versa.
 - **Privacy/security:** P1 meter data is personal (GDPR): minimise and pseudonymise · P2 no customer data to external AI without a DPA · P3 no new dependencies or secrets.
 - **AI agents:** A1 follow this file; hooks enforce it · A2 humans approve, agents propose · A3 log every action, write an RCA · A4 escalating is a success.
 

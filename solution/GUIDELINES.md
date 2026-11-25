@@ -58,6 +58,7 @@ Every guideline traces to a real failure. The three open WattWise incidents are 
 | K2 | Every rule has a stable ID mapped to code and tests (`tools/drift-check/rules.json`). No orphan rules, no undocumented business logic. | lint |
 | K3 | Rule changes need product-owner sign-off via `wiki/_proposals/`; docs change in the same PR as code. | hook, review |
 | K4 | Keep the *why* in the wiki; documentation that only restates the code is noise. | review |
+| K5 | **Tickets, CHANGELOG and code tell one story.** Every fixed ticket has a CHANGELOG line under Unreleased with its id; every CHANGELOG ticket exists and is not open. | lint |
 
 ## P — Privacy and security
 

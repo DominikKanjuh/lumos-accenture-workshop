@@ -2,7 +2,7 @@
 
 Checks
   KIT  - AGENTS.md, GUIDELINES.md, skills, hooks present and wired; guard hook self-test
-  INV  - every wiki page, data file and source module is registered and cross-referenced (no orphans)
+  INV  - every wiki page, data file and source module is registered and cross-referenced (no orphans); tickets <-> CHANGELOG
   MAP  - every wiki rule section is mapped, every mapped symbol/test exists, no orphan business code (K2)
   CODE - guideline rules on domain code: N1 float, N2 rounding, E1 built-in exceptions, docstrings/hints
 
@@ -164,6 +164,35 @@ def check_inventory(repo: Path, lint: Lint) -> None:
                 lint.err("INV", f"data/{f}: keys {keys} != registered {meta['json_keys']} (schema drift)")
 
 
+def check_changelog(repo: Path, lint: Lint) -> None:
+    """K5: tickets and CHANGELOG agree - every fixed ticket is logged, every logged ticket exists and is fixed."""
+    changelog, issues = repo / "CHANGELOG.md", repo / "issues"
+    if not changelog.exists():
+        lint.err("INV", "CHANGELOG.md missing")
+        return
+    text = changelog.read_text()
+    if "## Unreleased" not in text:
+        lint.err("INV", "CHANGELOG.md has no '## Unreleased' section")
+        return
+    unreleased = text.split("## Unreleased", 1)[1].split("\n## ", 1)[0]
+    logged = set(re.findall(r"\b(BUG-\d+)\b", unreleased))
+    tickets = {}
+    for f in issues.glob("BUG-*.md") if issues.exists() else []:
+        status = re.search(r"\|\s*Status\s*\|\s*([^|]+)\|", f.read_text())
+        tickets[f.name.split("-")[0] + "-" + f.name.split("-")[1]] = status.group(1).strip() if status else ""
+    for tid, status in sorted(tickets.items()):
+        if status.lower().startswith("fixed") and tid not in logged:
+            lint.err("INV", f"{tid} is '{status}' but has no CHANGELOG line under Unreleased (K5)")
+    for tid in sorted(logged):
+        if tid not in tickets:
+            lint.err("INV", f"CHANGELOG mentions {tid} but issues/ has no such ticket (K5)")
+        elif tickets[tid].lower().startswith("open"):
+            lint.err("INV", f"CHANGELOG lists {tid} but the ticket is still '{tickets[tid]}' (K5)")
+    for line in unreleased.splitlines():
+        if line.startswith("- ") and not re.search(r"\((BUG|FEAT)-\d+\)", line):
+            lint.warn("INV", f"CHANGELOG line without ticket id: {line[:60]}")
+
+
 def check_guidelines(repo: Path, lint: Lint) -> None:
     """Every company guideline ID in GUIDELINES.md must be stated in AGENTS.md (and vice versa)."""
     g, a = repo / "GUIDELINES.md", repo / "AGENTS.md"
@@ -221,6 +250,7 @@ def run(repo: Path) -> Lint:
     check_kit(repo, lint)
     check_guidelines(repo, lint)
     check_inventory(repo, lint)
+    check_changelog(repo, lint)
     check_map(repo, lint)
     check_code(repo, lint)
     return lint
