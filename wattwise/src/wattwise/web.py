@@ -21,6 +21,7 @@ from wattwise.service import (
     billing_result,
     previous_month,
 )
+from wattwise.usage import daily_usage
 
 
 @dataclass(frozen=True)
@@ -60,7 +61,8 @@ def route(repo: DataRepository, path: str) -> Response:
         result = billing_result(repo, customer_id, month)
         prev = previous_month(month)
         previous = billing_result(repo, customer_id, prev) if prev in months else None
-        return Response(200, views.render_invoice(month, months, result, previous))
+        usage = daily_usage(repo, customer_id)
+        return Response(200, views.render_invoice(month, months, result, previous, usage))
 
     return Response(404, views.render_not_found(f"No page at {url.path}"))
 

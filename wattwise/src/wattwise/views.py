@@ -5,12 +5,13 @@ that comes from data is escaped with :func:`esc`.
 """
 
 import calendar
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 from html import escape
 
 from wattwise.service import BillingResult
 from wattwise.tariff import Tariff
+from wattwise.usage import MonthlyUsage
 
 STYLE = """
 :root {
@@ -69,6 +70,16 @@ dd { margin: 0; font-variant-numeric: tabular-nums; }
 .down { color: var(--ok); font-weight: 600; }
 .back { display: inline-block; margin-bottom: 16px; color: var(--brand);
         text-decoration: none; }
+.usage svg { width: 100%; height: auto; display: block; margin-bottom: 16px; }
+.usage svg text { font-size: 11px; fill: var(--muted); }
+.usage .g { stroke: var(--line); }
+.usage .sep { stroke: var(--line); stroke-dasharray: 3 3; }
+.usage .b { fill: #9fd3c7; }
+.usage .b.on { fill: var(--brand); }
+.usage .b:hover { fill: #08584c; }
+.usage .tiles { margin-bottom: 0; }
+.usage .tile .value { font-size: 20px; }
+.usage .tile.on { border-color: var(--brand); background: var(--brand-soft); }
 """
 
 
@@ -216,6 +227,63 @@ def _comparison(current: BillingResult, previous: BillingResult | None) -> str:
 </div>"""
 
 
+def render_usage_chart(usage: list[MonthlyUsage], active: str) -> str:
+    """Bar chart of daily consumption (one bar per day) for the customer page."""
+    if not usage:
+        return ""
+    width, height, left, bottom, top = 960, 220, 44, 28, 12
+    plot_w, plot_h = width - left - 8, height - bottom - top
+    n_days = sum((u.period.end - u.period.start).days + 1 for u in usage)
+    bar_w = plot_w / n_days
+    peak = max((u.kwh_per_day for u in usage), default=Decimal("0")) or Decimal("1")
+    scale = float(peak) * 1.15
+
+    grid, bars, labels = [], [], []
+    for i in range(5):
+        value = scale * i / 4
+        y = top + plot_h - plot_h * i / 4
+        grid.append(
+            f'<line x1="{left}" x2="{width - 8}" y1="{y:.1f}" y2="{y:.1f}" class="g"/>'
+            f'<text x="{left - 6}" y="{y + 4:.1f}" text-anchor="end">'
+            f'{value:.{0 if scale >= 20 else 1}f}</text>'
+        )
+    x = float(left)
+    for u in usage:
+        css = "b on" if u.month == active else "b"
+        h = plot_h * float(u.kwh_per_day) / scale
+        start_x = x
+        day = u.period.start
+        while day <= u.period.end:
+            bars.append(
+                f'<rect class="{css}" x="{x + 0.5:.1f}" y="{top + plot_h - h:.1f}" '
+                f'width="{max(bar_w - 1, 1):.1f}" height="{h:.1f}">'
+                f"<title>{esc(fmt_date(day))}: {u.kwh_per_day:.1f} kWh</title></rect>"
+            )
+            x += bar_w
+            day += timedelta(days=1)
+        labels.append(
+            f'<text x="{(start_x + x) / 2:.1f}" y="{height - 8}" text-anchor="middle">'
+            f"{esc(month_label(u.month))}</text>"
+            f'<line x1="{x:.1f}" x2="{x:.1f}" y1="{top}" y2="{top + plot_h}" class="sep"/>'
+        )
+
+    summary = "".join(
+        f'<div class="tile{" on" if u.month == active else ""}">'
+        f'<div class="label">{esc(month_label(u.month))}</div>'
+        f'<div class="value">{u.kwh_per_day:.1f} kWh/day</div>'
+        f'<div class="label">{u.total_kwh:,} kWh in {u.days} days</div></div>'
+        for u in usage
+    )
+    return f"""
+<div class="card usage">
+<h2>Daily consumption <span class="sub">(kWh per day)</span></h2>
+<svg viewBox="0 0 {width} {height}" role="img" aria-label="Daily consumption chart">
+{"".join(grid)}{"".join(bars)}{"".join(labels)}
+</svg>
+<div class="tiles">{summary}</div>
+</div>"""
+
+
 def _reading(value: object | None) -> str:
     return esc(value) if value is not None else "&ndash;"
 
@@ -225,6 +293,7 @@ def render_invoice(
     months: list[str],
     result: BillingResult,
     previous: BillingResult | None,
+    usage: list[MonthlyUsage] | None = None,
 ) -> str:
     """Invoice page for one customer and month."""
     c, period = result.customer, result.period
@@ -276,7 +345,8 @@ def render_invoice(
 <p class="sub">Invoice for {esc(month_label(month))}</p>
 {_month_tabs(months, month, f"/invoice/{c.customer_id}/{{m}}")}
 {main}
-{details}"""
+{details}
+{render_usage_chart(usage or [], month)}"""
     return page(f"{c.name} {month_label(month)}", body)
 
 
