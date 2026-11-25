@@ -14,7 +14,6 @@ customer for the month before.
 | [Billing Rules](Billing-Rules.md) | Billing periods, base fee, invoice layout, VAT, rounding |
 | [Tariffs](Tariffs.md) | Our tariff products and how tiered prices work |
 | [Meter Readings](Meter-Readings.md) | How consumption is calculated from readings |
-| [Move-In and Move-Out](Move-In-Move-Out.md) | Billing customers for partial months (FEAT-163, not implemented yet) |
 | [Architecture](Architecture.md) | Code structure and data flow |
 | [Development Workflow](Development-Workflow.md) | How we handle bug tickets |
 
