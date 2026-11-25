@@ -1,0 +1,18 @@
+name: wikiguard
+on: [pull_request, push]
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: python -m pip install -e ".[dev]"
+      - name: Knowledge layer + guidelines lint
+        run: python tools/wikiguard_lint.py --repo .
+      - name: Wiki <-> code drift
+        run: python tools/drift-check/drift_check.py --repo . --out drift-report.md
+      - name: Test suite (incl. wiki examples + invariants)
+        run: python -m pytest
+      - if: always()
+        run: cat drift-report.md >> "$GITHUB_STEP_SUMMARY"
