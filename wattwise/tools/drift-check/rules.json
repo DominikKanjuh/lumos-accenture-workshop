@@ -1,0 +1,319 @@
+{
+  "wiki_pages": [
+    "Billing-Rules",
+    "Meter-Readings",
+    "Tariffs"
+  ],
+  "code_scope": [
+    "models",
+    "meter",
+    "tariff",
+    "billing",
+    "money",
+    "service"
+  ],
+  "rules": {
+    "Billing-Rules#billing-period": {
+      "code": [
+        "models.BillingPeriod.days",
+        "service.month_period"
+      ],
+      "tests": [],
+      "examples": [
+        {
+          "table": 0,
+          "call": "days('{Period}')",
+          "expect": "{Billable days}"
+        }
+      ]
+    },
+    "Billing-Rules#base-fee": {
+      "code": [
+        "tariff.prorated_base_fee",
+        "tariff.DAYS_PER_YEAR"
+      ],
+      "tests": [
+        "test_tariff.py::test_prorated_base_fee_full_year_equals_twelve_months",
+        "test_tariff.py::test_prorated_base_fee_single_day"
+      ],
+      "examples": [
+        {
+          "call": "prorated_base_fee(get_tariff('BASIC'), 30)",
+          "expect": "9.76",
+          "wiki_quote": "\u2192 9.76 EUR"
+        }
+      ]
+    },
+    "Billing-Rules#invoice-layout": {
+      "depends_on": [
+        "Billing-Rules#billing-period"
+      ],
+      "code": [
+        "billing.create_invoice"
+      ],
+      "tests": [
+        "test_billing.py::test_create_invoice_has_base_fee_and_energy_lines"
+      ],
+      "examples": [
+        {
+          "call": "[l.description for l in invoice('BASIC', '2026-11', 247).lines]",
+          "expect": "['Base fee (30 days)', 'Energy (247 kWh)']",
+          "wiki_quote": "Base fee (30 days)"
+        }
+      ]
+    },
+    "Billing-Rules#vat-and-rounding": {
+      "code": [
+        "billing.VAT_RATE",
+        "money.round_eur"
+      ],
+      "tests": [
+        "test_billing.py::test_create_invoice_vat_is_computed_on_net",
+        "test_billing.py::test_create_invoice_net_is_sum_of_lines",
+        "test_money.py::test_round_eur_rounds_half_up"
+      ],
+      "examples": [
+        {
+          "call": "vat_on_net(invoice('COMFORT', '2026-11', 260))",
+          "expect": "True"
+        },
+        {
+          "call": "round_eur(D('18.0462'))",
+          "expect": "18.05",
+          "wiki_quote": "18.0462"
+        }
+      ]
+    },
+    "Billing-Rules#full-example": {
+      "depends_on": [
+        "Billing-Rules#billing-period",
+        "Billing-Rules#base-fee",
+        "Tariffs#how-tiered-prices-work"
+      ],
+      "code": [
+        "billing.create_invoice"
+      ],
+      "tests": [],
+      "examples": [
+        {
+          "table": 0,
+          "call": "amount(invoice('BASIC', '2026-11', 247), '{Line}')",
+          "expect": "{Amount}"
+        }
+      ]
+    },
+    "Meter-Readings#consumption": {
+      "code": [
+        "meter.consumption_kwh"
+      ],
+      "tests": [
+        "test_meter.py::test_consumption_kwh_is_difference_of_readings"
+      ],
+      "examples": [
+        {
+          "call": "consumption(5, 41210, 41455)",
+          "expect": "245"
+        }
+      ]
+    },
+    "Meter-Readings#register-rollover": {
+      "code": [
+        "meter.consumption_kwh",
+        "models.Meter.max_value"
+      ],
+      "tests": [],
+      "examples": [
+        {
+          "call": "consumption(5, 99870, 95)",
+          "expect": "225",
+          "wiki_quote": "= 225 kWh"
+        },
+        {
+          "call": "consumption(6, 999900, 100)",
+          "expect": "200"
+        },
+        {
+          "call": "consumption(5, 50000, 100)",
+          "expect": "raises ImplausibleConsumptionError",
+          "wiki_quote": "the plausibility check flags it"
+        }
+      ]
+    },
+    "Meter-Readings#plausibility-check": {
+      "code": [
+        "meter.consumption_kwh",
+        "meter.MAX_PLAUSIBLE_KWH_PER_DAY"
+      ],
+      "tests": [
+        "test_meter.py::test_consumption_kwh_flags_implausible_consumption"
+      ],
+      "examples": [
+        {
+          "call": "consumption(5, 1000, 7000)",
+          "expect": "6000"
+        },
+        {
+          "call": "consumption(5, 1000, 7001)",
+          "expect": "raises ImplausibleConsumptionError"
+        }
+      ]
+    },
+    "Meter-Readings#validation": {
+      "code": [
+        "meter.consumption_kwh",
+        "models.Meter.max_value"
+      ],
+      "tests": [
+        "test_meter.py::test_consumption_kwh_rejects_reading_of_other_meter",
+        "test_meter.py::test_consumption_kwh_rejects_value_outside_register",
+        "test_meter.py::test_consumption_kwh_rejects_readings_out_of_order"
+      ],
+      "examples": [
+        {
+          "call": "consumption_kwh(meter(5), r(1, '2026-11-01'), r(2, '2026-12-01', 'M-2'))",
+          "expect": "raises InvalidReadingError"
+        },
+        {
+          "call": "consumption(5, 1, 100000)",
+          "expect": "raises InvalidReadingError"
+        },
+        {
+          "call": "consumption_kwh(meter(5), r(1, '2026-12-01'), r(2, '2026-11-01'))",
+          "expect": "raises InvalidReadingError"
+        }
+      ]
+    },
+    "Tariffs#tariffs": {
+      "code": [
+        "tariff.TARIFFS",
+        "tariff.get_tariff"
+      ],
+      "tests": [],
+      "examples": [
+        {
+          "table": 0,
+          "call": "get_tariff('{Code}').name",
+          "expect": "{Name}"
+        },
+        {
+          "table": 0,
+          "call": "get_tariff('{Code}').monthly_base_fee",
+          "expect": "{Base fee / month}"
+        }
+      ]
+    },
+    "Tariffs#how-tiered-prices-work": {
+      "code": [
+        "tariff.energy_charge"
+      ],
+      "tests": [
+        "test_tariff.py::test_energy_charge_comfort_within_first_tier",
+        "test_tariff.py::test_energy_charge_comfort_at_tier_boundary"
+      ],
+      "examples": [
+        {
+          "table": 0,
+          "where": {
+            "Tier": "Energy charge"
+          },
+          "call": "energy_charge(get_tariff('COMFORT'), {kWh in tier})",
+          "expect": "{Amount}"
+        },
+        {
+          "table": 1,
+          "where": {
+            "Tier": "Energy charge"
+          },
+          "call": "energy_charge(get_tariff('HEATPUMP'), {kWh in tier})",
+          "expect": "{Amount}"
+        },
+        {
+          "call": "max_step('COMFORT')",
+          "expect": "0.37",
+          "wiki_quote": "must never make the bill jump"
+        },
+        {
+          "call": "max_step('HEATPUMP')",
+          "expect": "0.32",
+          "wiki_quote": "must never make the bill jump"
+        }
+      ]
+    },
+    "Tariffs#adding-a-tariff": {
+      "code": [
+        "tariff.TARIFFS"
+      ],
+      "tests": [
+        "test_tariff.py::test_tariff_last_tier_is_open_ended"
+      ],
+      "examples": [
+        {
+          "call": "tiers_well_formed()",
+          "expect": "True"
+        }
+      ]
+    },
+    "Billing-Rules#energy-charge": {
+      "code": [
+        "tariff.energy_charge"
+      ],
+      "tests": [],
+      "examples": []
+    },
+    "Meter-Readings#where-readings-come-from": {
+      "code": [],
+      "tests": [],
+      "examples": []
+    }
+  },
+  "inventory": {
+    "wiki": {
+      "Home.md": {
+        "kind": "index"
+      },
+      "Glossary.md": {
+        "kind": "reference"
+      },
+      "Billing-Rules.md": {
+        "kind": "rules"
+      },
+      "Tariffs.md": {
+        "kind": "rules"
+      },
+      "Meter-Readings.md": {
+        "kind": "rules"
+      },
+      "Architecture.md": {
+        "kind": "mechanics"
+      },
+      "Development-Workflow.md": {
+        "kind": "process"
+      }
+    },
+    "data": {
+      "customers.json": {
+        "read_by": "repository",
+        "documented_in": [
+          "Meter-Readings.md",
+          "Architecture.md"
+        ],
+        "json_keys": [
+          "customers",
+          "meters"
+        ]
+      },
+      "readings.csv": {
+        "read_by": "repository",
+        "documented_in": [
+          "Meter-Readings.md",
+          "Architecture.md"
+        ],
+        "csv_columns": [
+          "meter_id",
+          "read_on",
+          "value"
+        ]
+      }
+    }
+  }
+}

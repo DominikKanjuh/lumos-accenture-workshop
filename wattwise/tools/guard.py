@@ -1,0 +1,55 @@
+"""Agent guardrail hook: enforces AGENTS.md boundaries and writes an audit log.
+
+Claude Code hook: reads the tool call as JSON on stdin. Exit 2 = block (stderr is shown to the agent).
+Usage: `guard.py pre` (PreToolUse on Edit|Write) and `guard.py log` (PostToolUse, all tools).
+"""
+import json
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+LOCKED_RULE_PAGES = {"wiki/Billing-Rules.md", "wiki/Tariffs.md", "wiki/Meter-Readings.md"}
+
+
+def rel(path: str, cwd: str) -> str:
+    try:
+        return Path(path).resolve().relative_to(Path(cwd).resolve()).as_posix()
+    except ValueError:
+        return path
+
+
+def check(event: dict) -> str | None:
+    inp = event.get("tool_input", {})
+    path = rel(inp.get("file_path", ""), event.get("cwd", "."))
+    if path in LOCKED_RULE_PAGES:
+        return f"{path} holds business rules (source of truth). Write a proposal to wiki/_proposals/ instead."
+    if path.startswith("data/"):
+        return "data/ is read-only: the meter readings are correct. Fix the code."
+    if path.startswith("issues/") and event.get("tool_name") == "Write":
+        return "Do not rewrite tickets; only edit the status line."
+    if path.startswith("tests/") and Path(inp.get("file_path", "")).exists():
+        old, new = inp.get("old_string"), inp.get("new_string")
+        if old is None:
+            return "Do not overwrite an existing test file. Add tests with an additive Edit or a new file."
+        if not (new.startswith(old) or new.endswith(old)):
+            return "Existing tests must not be changed or weakened. Only append new tests."
+    return None
+
+
+def main() -> None:
+    mode = sys.argv[1] if len(sys.argv) > 1 else "pre"
+    event = json.load(sys.stdin)
+    if mode == "log":
+        entry = {"ts": datetime.now(timezone.utc).isoformat(), "tool": event.get("tool_name"),
+                 "input": event.get("tool_input")}
+        with open(Path(event.get("cwd", ".")) / "reports" / "agent-audit.log", "a") as f:
+            f.write(json.dumps(entry, default=str)[:2000] + "\n")
+        return
+    reason = check(event)
+    if reason:
+        print(f"BLOCKED by guard: {reason}", file=sys.stderr)
+        sys.exit(2)
+
+
+if __name__ == "__main__":
+    main()
