@@ -18,7 +18,9 @@
         "models.BillingPeriod.days",
         "service.month_period"
       ],
-      "tests": [],
+      "tests": [
+        "test_models.py::test_billing_period_days_includes_start_and_end"
+      ],
       "examples": [
         {
           "table": 0,
@@ -52,7 +54,8 @@
         "billing.create_invoice"
       ],
       "tests": [
-        "test_billing.py::test_create_invoice_has_base_fee_and_energy_lines"
+        "test_billing.py::test_create_invoice_has_base_fee_and_energy_lines",
+        "test_billing.py::test_create_invoice_matches_wiki_full_example"
       ],
       "examples": [
         {
@@ -93,7 +96,9 @@
       "code": [
         "billing.create_invoice"
       ],
-      "tests": [],
+      "tests": [
+        "test_billing.py::test_create_invoice_matches_wiki_full_example"
+      ],
       "examples": [
         {
           "table": 0,
@@ -121,7 +126,11 @@
         "meter.consumption_kwh",
         "models.Meter.max_value"
       ],
-      "tests": [],
+      "tests": [
+        "test_meter.py::test_consumption_kwh_handles_register_rollover",
+        "test_meter.py::test_consumption_kwh_handles_register_rollover_six_digits",
+        "test_meter.py::test_consumption_kwh_flags_implausible_rollover"
+      ],
       "examples": [
         {
           "call": "consumption(5, 99870, 95)",
@@ -208,7 +217,11 @@
       ],
       "tests": [
         "test_tariff.py::test_energy_charge_comfort_within_first_tier",
-        "test_tariff.py::test_energy_charge_comfort_at_tier_boundary"
+        "test_tariff.py::test_energy_charge_comfort_at_tier_boundary",
+        "test_tariff.py::test_energy_charge_comfort_prices_only_kwh_above_limit_at_higher_tier",
+        "test_tariff.py::test_energy_charge_heatpump_prices_each_tier_separately",
+        "test_tariff.py::test_energy_charge_comfort_one_kwh_above_limit_costs_top_price_only",
+        "test_wikiguard.py::test_energy_charge_is_continuous_in_consumption"
       ],
       "examples": [
         {

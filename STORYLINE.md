@@ -37,7 +37,8 @@ WattWise gave us their code and three bug tickets. We could have fixed three bug
 - Before: drift check flags **all 3 bugs**.
 - We ran the agent headless on each ticket: **3 bugs fixed in ~8 minutes**, each with a failing-first test, wiki citation, CHANGELOG entry and RCA report.
 - After: **0 drift**, all 5 customers invoiced, 62 of 63 tests pass. The remaining failure is a lint gate catching a real rule violation the tickets never mentioned.
-- Bonus findings: an unreported overcharge (C-1003, October) and €5.42 of underbilling, both flagged for a finance decision.
+- Guardrails verified live: an agent told to edit a wiki rule, overwrite data and weaken a test was blocked all 3 times, and each attempt was logged.
+- Bonus findings: an unreported overcharge (C-1003, October) and €5.04 of base-fee underbilling on issued invoices, both flagged for a finance decision.
 
 ## 6. Why it matters
 

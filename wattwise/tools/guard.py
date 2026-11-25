@@ -36,17 +36,28 @@ def check(event: dict) -> str | None:
     return None
 
 
+def log(event: dict, blocked: str | None = None) -> None:
+    inp = {k: (v[:500] + "…" if isinstance(v, str) and len(v) > 500 else v)
+           for k, v in (event.get("tool_input") or {}).items()}
+    entry = {"ts": datetime.now(timezone.utc).isoformat(), "tool": event.get("tool_name"), "input": inp}
+    if blocked:
+        entry["blocked"] = blocked
+    reports = Path(event.get("cwd", ".")) / "reports"
+    if reports.is_dir():
+        with open(reports / "agent-audit.log", "a") as f:
+            f.write(json.dumps(entry, default=str) + "\n")
+
+
 def main() -> None:
     mode = sys.argv[1] if len(sys.argv) > 1 else "pre"
     event = json.load(sys.stdin)
     if mode == "log":
-        entry = {"ts": datetime.now(timezone.utc).isoformat(), "tool": event.get("tool_name"),
-                 "input": event.get("tool_input")}
-        with open(Path(event.get("cwd", ".")) / "reports" / "agent-audit.log", "a") as f:
-            f.write(json.dumps(entry, default=str)[:2000] + "\n")
+        log(event)
         return
     reason = check(event)
     if reason:
+        if mode != "selftest":
+            log(event, blocked=reason)
         print(f"BLOCKED by guard: {reason}", file=sys.stderr)
         sys.exit(2)
 

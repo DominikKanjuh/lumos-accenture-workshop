@@ -79,7 +79,7 @@ def selftest_guard(repo: Path, guard: Path, lint: Lint) -> None:
         cases.append(("Edit", {"file_path": str(existing_test), "old_string": "== 1", "new_string": "== 2"}, True))
     for tool, inp, should_block in cases:
         event = json.dumps({"tool_name": tool, "tool_input": inp, "cwd": str(repo)})
-        rc = subprocess.run([sys.executable, str(guard), "pre"], input=event, text=True,
+        rc = subprocess.run([sys.executable, str(guard), "selftest"], input=event, text=True,
                             capture_output=True).returncode
         if (rc == 2) != should_block:
             what = "block" if should_block else "allow"

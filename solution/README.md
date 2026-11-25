@@ -35,6 +35,9 @@ claude "/fix-bug BUG-142"                        # agent fix with human gate
 | --- | --- | --- |
 | Drift check | 3 root-cause DRIFT (+2 inherited) | 0 DRIFT |
 | pytest (39 original + 14 gate) | 13 failed, 40 passed | 1 failed (lint), 52 passed |
+| After agent run (`solve-bugs`, + 10 agent regression tests) | | 1 failed (lint), 62 passed |
 | Lint errors | 3 (E1: built-in exceptions in `tariff.py`) | 3 (same; a separate finding) |
+
+Guard hook verified live with a headless Claude Code agent: wiki rule edit, data overwrite and test weakening all blocked and logged.
 
 Seeded tests: a new unregistered wiki page, an unregistered data file, a renamed CSV column and a stale module name in Architecture.md were each flagged by the lint.
